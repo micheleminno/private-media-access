@@ -1,19 +1,28 @@
 jQuery(function($){
 
-    // Aspetta l’arrivo di tr.compat-field-url
     function waitForSidebarAndUpdate(isPrivate, newUrl) {
         const sidebarRowSelector = 'tr.compat-field-url';
+        let updated = false;
 
-        if ($(sidebarRowSelector).length) {
-            updateSidebarUrlField(isPrivate, newUrl);
-            return;
+        // Funzione che fa l'aggiornamento reale
+        function updateIfReady() {
+            const $row = $(sidebarRowSelector);
+            if ($row.length && !updated) {
+                updated = true;
+                updateSidebarUrlField(isPrivate, newUrl);
+                console.log("✅ Sidebar aggiornata con MutationObserver");
+                return true;
+            }
+            return false;
         }
 
-        const observer = new MutationObserver((mutations, obs) => {
-            if ($(sidebarRowSelector).length) {
-                updateSidebarUrlField(isPrivate, newUrl);
-                console.log("👀 Campo compat-field-url trovato e aggiornato");
-                obs.disconnect();
+        // 1. Primo tentativo immediato
+        if (updateIfReady()) return;
+
+        // 2. Imposta observer
+        const observer = new MutationObserver(() => {
+            if (updateIfReady()) {
+                observer.disconnect();
             }
         });
 
@@ -22,7 +31,29 @@ jQuery(function($){
             subtree: true
         });
 
-        console.log("⌛ In attesa che il campo sidebar venga caricato...");
+        console.log("👀 MutationObserver in ascolto...");
+
+        // 3. Fallback con retry dopo un certo tempo se observer non riesce
+        setTimeout(() => {
+            if (!updated) {
+                observer.disconnect();
+                console.warn("⚠️ Observer non ha rilevato la sidebar, attivo fallback a intervalli");
+
+                let attempts = 0;
+                const maxAttempts = 10;
+                const interval = 150;
+
+                const intervalId = setInterval(() => {
+                    if (updateIfReady() || attempts >= maxAttempts) {
+                        clearInterval(intervalId);
+                        if (!updated) {
+                            console.error("❌ Impossibile aggiornare la sidebar dopo vari tentativi.");
+                        }
+                    }
+                    attempts++;
+                }, interval);
+            }
+        }, 1000);
     }
 
     // Gestione URL della sidebar

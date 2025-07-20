@@ -1,0 +1,15 @@
+
+
+.compat-field-pma_private td.field > div {
+    margin-top: 16px;
+}
+
+.compat-field-pma_private th {
+    vertical-align: top;
+}
+
+// Per nascondere parti della sidebar se il file è settato come privato
+.attachment-details .setting[data-setting="url"] input,
+.attachment-details .setting[data-setting="url"] .copy-to-clipboard {
+    display: none !important;
+}

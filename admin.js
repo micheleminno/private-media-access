@@ -1,13 +1,20 @@
 jQuery(function($){
 
+    /* Osservazione della sidebar per aggiornare l'URL del file */
+    
     function waitForSidebarAndUpdate(isPrivate, newUrl) {
         const sidebarRowSelector = 'tr.compat-field-url';
+
+        console.log("⏱️ waitForSidebar: entro, isPrivate=", isPrivate, "newUrl=", newUrl);
+
         let updated = false;
 
         // Funzione che fa l'aggiornamento reale
         function updateIfReady() {
             const $row = $(sidebarRowSelector);
             if ($row.length && !updated) {
+
+                console.log("⚡ Campo sidebar già presente e da aggiornare, aggiorno subito");
                 updated = true;
                 updateSidebarUrlField(isPrivate, newUrl);
                 console.log("✅ Sidebar aggiornata con MutationObserver");
@@ -55,6 +62,7 @@ jQuery(function($){
             }
         }, 1000);
     }
+    
 
     // Gestione URL della sidebar
     function updateSidebarUrlField(isPrivate, newUrl) {
@@ -63,7 +71,7 @@ jQuery(function($){
 
       const $sidebarRow = $('tr.compat-field-url');
       let $sidebarInput = $('#pma-sidebar-url');
-      console.log("🔍 Trovato sidebarRow:", $sidebarRow.length, " | Trovato input:", $sidebarInput.length);
+      console.log("🔍 Trovato sidebarRow di lunghezza:", $sidebarRow.length, " | Trovato input di lunghezza:", $sidebarInput.length);
 
       if (!$sidebarInput.length) {
           // se non esiste ancora, lo creiamo dentro la riga `tr.compat-field-url`
@@ -154,9 +162,9 @@ jQuery(function($){
                     }
                 }
 
-                // aspetta che la sidebar sia ricaricata e aggiorna l'URL del file
+                // aggiorna l'URL del file non appena si carica la sidebar
+                console.log("Aggiorno l'URL del file nella sidebar:", response.data.url);
                 waitForSidebarAndUpdate(newVal === '1', url);
-
 
             } else {
                 alert("Errore: " + (response.data || "operazione fallita"));

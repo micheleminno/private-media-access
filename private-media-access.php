@@ -99,7 +99,7 @@ add_filter('attachment_fields_to_edit', function($form_fields, $post) {
                     Privato
                 </label>
                 <div id="pma-url-field-'.$post->ID.'" style="'.$style.' display: flex; align-items: center; gap: 8px;">
-                    <input type="text" readonly value="'.esc_attr(wp_get_attachment_url($post->ID)).'" size="50" />
+                    <input id="pma-inline-url type="text" readonly value="'.esc_attr(wp_get_attachment_url($post->ID)).'" size="50" />
                     <button type="button" class="button copy-pma-url">Copia URL</button>
                 </div>
             </div>'
@@ -107,6 +107,7 @@ add_filter('attachment_fields_to_edit', function($form_fields, $post) {
 
     // CAMPO URL DELLA SIDEBAR che varia a seconda della visibilità impostata
 
+    $form_fields['url']['label'] = 'URL del file';
     $form_fields['url']['input'] = 'html';
     $form_fields['url']['html'] = '<input id="pma-sidebar-url" type="text" readonly style="width:100%;" value="'.esc_attr($url).'">';
     $form_fields['url']['helps'] = $is_private

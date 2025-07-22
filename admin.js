@@ -1,117 +1,5 @@
 jQuery(function($){
-
-    /* Osservazione della sidebar per aggiornare l'URL del file */
-    
-    function waitForSidebarAndUpdate(isPrivate, newUrl) {
-        const sidebarRowSelector = 'tr.compat-field-url';
-
-        console.log("⏱️ waitForSidebar: entro, isPrivate=", isPrivate, "newUrl=", newUrl);
-
-        let updated = false;
-
-        // Funzione che fa l'aggiornamento reale
-        function updateIfReady() {
-            const $row = $(sidebarRowSelector);
-            if ($row.length && !updated) {
-
-                console.log("⚡ Campo sidebar già presente e da aggiornare, aggiorno subito");
-                updated = true;
-                updateSidebarUrlField(isPrivate, newUrl);
-                console.log("✅ Sidebar aggiornata con MutationObserver");
-                return true;
-            }
-            return false;
-        }
-
-        // 1. Primo tentativo immediato
-        if (updateIfReady()) return;
-
-        // 2. Imposta observer
-        const observer = new MutationObserver(() => {
-            if (updateIfReady()) {
-                observer.disconnect();
-            }
-        });
-
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-
-        console.log("👀 MutationObserver in ascolto...");
-
-        // 3. Fallback con retry dopo un certo tempo se observer non riesce
-        setTimeout(() => {
-            if (!updated) {
-                observer.disconnect();
-                console.warn("⚠️ Observer non ha rilevato la sidebar, attivo fallback a intervalli");
-
-                let attempts = 0;
-                const maxAttempts = 10;
-                const interval = 150;
-
-                const intervalId = setInterval(() => {
-                    if (updateIfReady() || attempts >= maxAttempts) {
-                        clearInterval(intervalId);
-                        if (!updated) {
-                            console.error("❌ Impossibile aggiornare la sidebar dopo vari tentativi.");
-                        }
-                    }
-                    attempts++;
-                }, interval);
-            }
-        }, 1000);
-    }
-    
-
-    // Gestione URL della sidebar
-    function updateSidebarUrlField(isPrivate, newUrl) {
-
-      console.log("🔧 updateSidebarUrlField chiamata con:", isPrivate, newUrl);
-
-      const $sidebarRow = $('tr.compat-field-url');
-      let $sidebarInput = $('#pma-sidebar-url');
-      console.log("🔍 Trovato sidebarRow di lunghezza:", $sidebarRow.length, " | Trovato input di lunghezza:", $sidebarInput.length);
-
-      if (!$sidebarInput.length) {
-          // se non esiste ancora, lo creiamo dentro la riga `tr.compat-field-url`
-          const $row = $('tr.compat-field-url');
-          if ($row.length) {
-              console.log("🆕 Creazione input per la sidebar");
-              const $newInput = $('<input>', {
-                  id: 'pma-sidebar-url',
-                  type: 'text',
-                  readonly: true,
-                  style: 'width:100%;',
-                  value: newUrl
-              });
-              $row.find('td.field').prepend($newInput);
-              $sidebarInput = $newInput;
-          } else {
-              console.warn("❌ Impossibile trovare o creare il campo URL della sidebar.");
-              return;
-          }
-      }
-
-      $sidebarInput.val(newUrl).show();
-      $sidebarInput.prop('readonly', true);
-
-      const $helpText = $sidebarRow.find('.help');
-
-      const helpMsg = isPrivate
-          ? "URL sicuro per accedere al file privato."
-          : "URL diretto al file pubblico.";
-
-      if ($helpText.length) {
-          $helpText.text(helpMsg);
-      } else {
-          $sidebarRow.find('td.field').append('<p class="help">' + helpMsg + '</p>');
-      }
-
-      console.log("📝 Sidebar aggiornata con URL:", newUrl, " | Privato:", isPrivate);
-  }
-
-
+   
     // Gestione toggle
     $(document).on('change', 'input[type=radio][name*="[pma_private]"]', function(){
         const $input = $(this);
@@ -162,9 +50,8 @@ jQuery(function($){
                     }
                 }
 
-                // aggiorna l'URL del file non appena si carica la sidebar
-                console.log("Aggiorno l'URL del file nella sidebar:", response.data.url);
-                waitForSidebarAndUpdate(newVal === '1', url);
+                // aggiorna anche l'input principale della sidebar
+                $('#attachment_url').val(url);
 
             } else {
                 alert("Errore: " + (response.data || "operazione fallita"));

@@ -146,5 +146,3 @@ Con supporto tecnico e refactoring di ChatGPT (OpenAI)
 
 
 
-```
-```

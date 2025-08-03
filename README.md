@@ -144,10 +144,7 @@ Con supporto tecnico e refactoring di ChatGPT (OpenAI)
 
 ---
 
-## 📜 Licenza
 
-Questo plugin è distribuito con licenza [MIT](https://opensource.org/licenses/MIT).
-Usalo, modificalo e diffondilo liberamente.
 
 ```
 ```

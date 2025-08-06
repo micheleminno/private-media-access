@@ -6,13 +6,13 @@ Gestione avanzata dei file privati e pubblici nella Media Library di WordPress, 
 
 ## ✨ Caratteristiche principali
 
-✅ Aggiunge un'opzione *"Pubblico / Privato"* nella scheda di ogni file nella libreria media
-✅ Sposta fisicamente il file nella cartella `/protected-media` se reso privato
-✅ Genera un URL protetto con accesso controllato per i file privati
-✅ Sostituisce la **thumbnail** del file con un'icona riservata
-✅ Log completo delle operazioni effettuate
-✅ Interfaccia admin con strumenti per visualizzare e azzerare il log
-✅ Compatibile con tutti i tipi di file: PDF, immagini, audio, video ecc.
+* ✅ Aggiunge un'opzione *"Pubblico / Privato"* nella scheda di ogni file nella libreria media
+* ✅ Sposta fisicamente il file nella cartella `/protected-media` se reso privato
+* ✅ Genera un URL protetto con accesso controllato per i file privati
+* ✅ Sostituisce la **thumbnail** del file con un'icona riservata
+* ✅ Log completo delle operazioni effettuate
+* ✅ Interfaccia admin con strumenti per visualizzare e azzerare il log
+* ✅ Compatibile con tutti i tipi di file: PDF, immagini, audio, video ecc.
 
 ---
 

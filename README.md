@@ -1,148 +1,113 @@
-# 📁 Private Media Access for WordPress
+# 📁 Private Media Access (PMA)
 
-Gestione avanzata dei file privati e pubblici nella Media Library di WordPress, con spostamento fisico dei file, URL sicuri e interfaccia utente personalizzata.
-
----
-
-## ✨ Caratteristiche principali
-
-* ✅ Aggiunge un'opzione *"Pubblico / Privato"* nella scheda di ogni file nella libreria media
-* ✅ Sposta fisicamente il file nella cartella `/protected-media` se reso privato
-* ✅ Genera un URL protetto con accesso controllato per i file privati
-* ✅ Sostituisce la **thumbnail** del file con un'icona riservata
-* ✅ Log completo delle operazioni effettuate
-* ✅ Interfaccia admin con strumenti per visualizzare e azzerare il log
-* ✅ Compatibile con tutti i tipi di file: PDF, immagini, audio, video ecc.
+**Private Media Access** è un plugin WordPress che ti permette di gestire file pubblici e privati nella Libreria Media, con spostamento automatico, URL protetto e thumbnail riservata.
 
 ---
 
-## 🧠 Perché questo plugin?
+## ✨ Funzionalità principali
 
-In WordPress i media caricati nella libreria sono **sempre accessibili pubblicamente** via URL diretto, anche se la pagina che li incorpora è privata.
-Questo plugin nasce per:
-
-* garantire la **riservatezza effettiva** dei file sensibili (ad es. documenti scolastici, relazioni, verbali…)
-* offrire un **controllo semplice e trasparente** su ogni file, direttamente dalla Media Library
-* permettere di **disabilitare l'accesso pubblico**, con pochi clic
-
----
-
-## 🔧 Come installare
-
-1. Clona o scarica il plugin nella cartella `wp-content/plugins`:
-
-```bash
-cd wp-content/plugins
-git clone https://github.com/micheleminno/private-media-access.git
-```
-
-2. Attiva il plugin da **Bacheca → Plugin**
-3. Carica o modifica qualsiasi file nella Libreria Media: vedrai comparire la nuova sezione **Visibilità**
+- **Impostazione rapida della visibilità**: per ogni file puoi scegliere se renderlo pubblico o privato tramite la Libreria Media.
+- **Spostamento automatico**:
+  - File **privati** spostati nella cartella `/wp-content/protected-media/` (fuori dalla cartella `uploads` pubblica).
+  - File **pubblici** spostati di nuovo nella cartella `uploads`.
+- **URL sicuro** per i file privati (tramite `download.php`).
+- **Thumbnail riservata** per i file privati, per non mostrare l’anteprima originale.
+- **Log amministratore** con tutte le operazioni eseguite.
+- **Creazione automatica** della cartella `protected-media` e del relativo `.htaccess` (se mancanti).
+- **Compatibile** con la Media Modal di WordPress (aggiorna automaticamente URL e immagine nella sidebar).
 
 ---
 
-## 🔐 Come proteggere i file riservati
+## 🚀 Installazione
 
-### 1. Crea la cartella `protected-media`
+1. Scarica o clona questo repository nella cartella `wp-content/plugins/` del tuo sito.
+2. Attiva il plugin da **Bacheca → Plugin** in WordPress.
+3. Il plugin crea automaticamente:
+   - `wp-content/protected-media/` (con sottocartelle `YYYY/MM` quando necessario)
+   - `wp-content/protected-media/.htaccess` con regole di blocco base (se non presente)
 
-Il plugin userà `wp-content/protected-media/YYYY/MM` per spostare i file riservati. Se non esiste, la creerà automaticamente. Assicurati che la cartella `wp-content/protected-media` sia **scrivibile** da WordPress.
+> Dopo l’attivazione non sono richieste altre configurazioni minime: puoi subito impostare i media come **Pubblici** o **Privati**.
 
-### 2. Proteggi l’accesso via `.htaccess`
+---
 
-Per evitare che i file nella cartella siano accessibili direttamente, crea un file:
+## 🔒 Protezione file privati
 
-```
-wp-content/protected-media/.htaccess
-```
-
-con questo contenuto:
+Per impedire l’accesso diretto ai file nella cartella `protected-media`, assicurati che nella cartella esista un file `.htaccess` con, ad esempio:
 
 ```apache
-# Nega l'accesso diretto ai file nella cartella
-<Files "*">
-  Order deny,allow
-  Deny from all
-</Files>
+# Impedisce l'accesso diretto ai file nella cartella protetta
+Order Deny,Allow
+Deny from all
 ```
 
-Con questa regola, i file riservati potranno essere serviti **solo tramite PHP**, e mai direttamente.
+Puoi personalizzare la protezione (ad es. consentire l’accesso solo ad utenti autenticati) modificando `download.php` o usando regole di rewrite più complesse.
 
 ---
 
-## 📤 Come funziona lo spostamento
+## 🖼 Come funziona
 
-Quando un file viene marcato come **privato**:
-
-* viene fisicamente spostato in `/protected-media/YYYY/MM/`
-* l’URL diretto viene sostituito con uno del tipo:
+### Quando imposti **Privato**
+- Il file originale (e le sue varianti/miniature) viene spostato da `uploads/YYYY/MM/` a `protected-media/YYYY/MM/`.
+- L’URL nella Libreria Media diventa:
 
 ```
-https://www.tuosito.it/wp-content/plugins/private-media-access/download.php?file=nome.pdf&year=2025&month=07
+https://tuosito.it/wp-content/plugins/private-media-access/download.php?file=NOMEFILE&year=YYYY&month=MM
 ```
 
-Quando viene reso **pubblico**, torna nella cartella `uploads/YYYY/MM`.
+- L’anteprima nella Media Modal mostra `reserved-thumbnail.png`.
+
+### Quando imposti **Pubblico**
+- Il file viene riportato in `uploads/YYYY/MM/`.
+- L’URL torna quello pubblico standard di WordPress.
+- L’anteprima viene aggiornata (forzando il refresh se necessario).
 
 ---
 
-## 👨‍💼 Logging delle operazioni
+## 🧰 Log
 
-Tutte le operazioni vengono registrate in:
+Vai su **Bacheca → Log PMA** per:
+- Visualizzare lo storico delle operazioni (successi/errori).
+- Filtrare il log tramite barra di ricerca.
+- **Azzera Log** o **Aggiorna Log** con gli appositi pulsanti.
 
-```
-wp-content/plugins/private-media-access/pma-log.txt
-```
-
-Dal menu **Log PMA** nel backend puoi:
-
-* consultare il log
-* azzerarlo con un clic
-* forzare il refresh
+I log sono salvati in `wp-content/plugins/private-media-access/pma-log.txt`.
 
 ---
 
-## 📸 Thumbnail riservate
+## ❓ FAQ / Troubleshooting
 
-Per i file privati, la thumbnail viene sostituita con l’immagine `reserved-thumbnail.png` inclusa nel plugin. Puoi personalizzarla sostituendo quel file con un tuo PNG.
+- **Non vedo la thumbnail riservata quando rendo privato un file.**  
+  Il plugin forza l’anteprima in `reserved-thumbnail.png`. Se persiste la vecchia immagine, aggiorna la pagina o svuota la cache del browser.
 
----
+- **L’URL nella sidebar non cambia subito.**  
+  Il plugin prova ad aggiornare in tempo reale. In alcune installazioni può essere necessario un refresh della pagina della Libreria Media.
 
-## ⚠️ Avvertenze
+- **La cartella `protected-media` non è stata creata.**  
+  Verifica i permessi di scrittura della cartella `wp-content/`. Alla prima operazione di “Privato” il plugin proverà a crearla automaticamente.
 
-* Il plugin non implementa una gestione avanzata dei permessi utenti. L’URL sicuro è offuscato ma **chiunque lo conosca può accedere**, a meno che non aggiungi un controllo lato PHP in `download.php`.
-* Assicurati di **fare il backup dei media** se modifichi manualmente la struttura delle cartelle.
-
----
-
-## 📁 Struttura del plugin
-
-```
-private-media-access/
-├── admin.js                  // Comportamento UI
-├── pm-accessibility-admin.css
-├── reserved-thumbnail.png
-├── pma-logs.php              // Visualizzazione log
-├── download.php              // Accesso controllato ai file riservati
-├── pma-log.txt               // Log testuale
-└── private-media-access.php  // Plugin principale
-```
+- **Accesso negato ai file privati anche da loggato.**  
+  Controlla le regole del `.htaccess` in `protected-media` o la logica di `download.php` per gestire l’autorizzazione.
 
 ---
 
-## 🦭 To-do futuri
+## 🧩 Compatibilità
 
-* [ ] Controllo utente nel download (es. solo utenti loggati)
-* [ ] Protezione dei file anche per estensioni non previste
-* [ ] Supporto multisito
-* [ ] Interfaccia con ruoli utente personalizzati
-
----
-
-## 👨‍💼 Autori
-
-**Michele Minno** (docente e sviluppatore)
-Con supporto tecnico e refactoring di ChatGPT (OpenAI)
+- Testato con WordPress ≥ 6.x.
+- Funziona con il tema “Scuola”/PA (mitiga il bug storico sulla protezione degli URL media).
+- PHP 7.4+ consigliato.
 
 ---
 
+## 🔐 Sicurezza
 
+- Gli URL dei file privati non sono diretti: passano tramite `download.php` (dove puoi aggiungere controlli su capability/ruolo utente).
+- I file vengono fisicamente spostati in una directory non pubblica (`protected-media`) con `.htaccess` restrittivo.
 
+---
+
+## 👨‍💻 Autore
+
+Sviluppato da **Michele Minno** con il supporto di ChatGPT.  
+Se questo plugin ti è utile, lascia una ⭐ su GitHub e condividilo con altre scuole.
+
+---

@@ -6,16 +6,50 @@
  * Author: Michele Minno & ChatGPT
  */
 
- add_action('admin_enqueue_scripts', function() {
-     wp_enqueue_script('pma-admin', plugin_dir_url(__FILE__) . 'admin.js', ['jquery'], null, true);
-     wp_localize_script('pma-admin', 'PMA_Ajax', [
-         'ajax_url' => admin_url('admin-ajax.php'),
-         'nonce' => wp_create_nonce('pma_nonce'),
-         'plugin_url' => plugin_dir_url(__FILE__)
-     ]);
+add_action('admin_enqueue_scripts', function() {
+    wp_enqueue_script('pma-admin', plugin_dir_url(__FILE__) . 'admin.js', ['jquery'], null, true);
+    wp_localize_script('pma-admin', 'PMA_Ajax', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('pma_nonce'),
+        'plugin_url' => plugin_dir_url(__FILE__)
+    ]);
 
-     wp_enqueue_style('pma-admin-style', plugin_dir_url(__FILE__) . 'pm-accessibility-admin.css');
- });
+    wp_enqueue_style('pma-admin-style', plugin_dir_url(__FILE__) . 'pm-accessibility-admin.css');
+});
+
+register_activation_hook(__FILE__, 'pma_bootstrap_protected_media');
+
+function pma_bootstrap_protected_media() {
+    $base = WP_CONTENT_DIR . '/protected-media';
+    if (!file_exists($base)) {
+        wp_mkdir_p($base);
+    }
+
+    // .htaccess: blocca accesso diretto (Apache)
+    $htaccess = $base . '/.htaccess';
+    if (!file_exists($htaccess)) {
+        $rules = <<<HT
+# PMA: blocca accesso diretto ai file
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Deny from all
+</IfModule>
+
+# (opzionale) in caso di fallback su directory listing
+Options -Indexes
+HT;
+        @file_put_contents($htaccess, $rules);
+    }
+
+    // index.php: evita directory listing
+    $index = $base . '/index.php';
+    if (!file_exists($index)) {
+        @file_put_contents($index, "<?php\n// Silence is golden.\n");
+    }
+}
+
 
 // Thumbnail riservata
 add_filter('wp_generate_attachment_metadata', function($meta, $post_id) {

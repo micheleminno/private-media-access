@@ -324,3 +324,113 @@ add_filter('wp_get_attachment_image_attributes', function($attr, $attachment) {
     }
     return $attr;
 }, 10, 2);
+
+/**
+ * Eliminazione sicura dei file privati da protected-media quando si elimina l'allegato.
+ * - Cancella originale + derivati (pattern basename*)
+ * - Funziona sia se il meta _pma_private è '1' sia se il path è in protected-media
+ * - Pulisce le directory vuote anno/mese
+ */
+
+// Quando WP sta cancellando fisicamente un file, rimuovi anche i "fratelli"
+add_filter('wp_delete_file', function ($file) {
+    if (!$file || !is_string($file)) return $file;
+
+    $protected_root = WP_CONTENT_DIR . '/protected-media';
+    $dir = dirname($file);
+
+    // Considera "privato" se è marcato tale oppure se sta fisicamente in protected-media
+    $is_in_protected = str_starts_with($dir, $protected_root);
+
+    if ($is_in_protected) {
+        $basename = pathinfo($file, PATHINFO_FILENAME);
+        $pattern  = $dir . '/' . $basename . '*';
+
+        $to_delete = glob($pattern) ?: [];
+        $deleted = 0;
+
+        foreach ($to_delete as $p) {
+            if (is_file($p) && @unlink($p)) {
+                $deleted++;
+                pma_log("🗑️ Eliminato file privato correlato: " . basename($p), 'success');
+            }
+        }
+
+        // Prova a ripulire le dir vuote (mese, poi anno)
+        pma_try_rmdir_if_empty($dir);
+        pma_try_rmdir_if_empty(dirname($dir));
+
+        pma_log("Totale file rimossi da protected-media: {$deleted} (pattern: {$pattern})", 'info');
+
+        // Restituisci comunque $file per lasciare che WP proceda normalmente (se esiste ancora)
+        // (Se lo abbiamo già cancellato noi, WP troverà il path mancante e andrà avanti senza errori)
+        return $file;
+    }
+
+    return $file;
+});
+
+/**
+ * Fallback: se per qualche motivo l'hook sopra non scatta, intercetta la cancellazione dell'allegato.
+ * Utile se l'allegato è marcato privato ma il path non è ancora stato aggiornato.
+ */
+add_action('delete_attachment', function ($post_id) {
+    $file = get_attached_file($post_id);
+    if (!$file) return;
+
+    $is_private = get_post_meta($post_id, '_pma_private', true) === '1';
+    $protected_root = WP_CONTENT_DIR . '/protected-media';
+    $dir = dirname($file);
+    $is_in_protected = str_starts_with($dir, $protected_root);
+
+    if (!$is_private && !$is_in_protected) return;
+
+    $basename = pathinfo($file, PATHINFO_FILENAME);
+    $pattern  = $dir . '/' . $basename . '*';
+
+    $to_delete = glob($pattern) ?: [];
+    $deleted = 0;
+
+    foreach ($to_delete as $p) {
+        if (is_file($p) && @unlink($p)) {
+            $deleted++;
+            pma_log("🗑️ [fallback] Eliminato file privato correlato: " . basename($p), 'success');
+        }
+    }
+
+    pma_try_rmdir_if_empty($dir);
+    pma_try_rmdir_if_empty(dirname($dir));
+
+    pma_log("✔️ [fallback] Allegato {$post_id}: rimossi {$deleted} file da protected-media (pattern: {$pattern})", 'info');
+});
+
+/**
+ * Utility: elimina la directory se vuota (silenziosamente).
+ */
+if (!function_exists('pma_try_rmdir_if_empty')) {
+    function pma_try_rmdir_if_empty(string $dir): void {
+        $protected_root = WP_CONTENT_DIR . '/protected-media';
+        // Non uscire dalla radice di protected-media
+        if (!str_starts_with($dir, $protected_root)) return;
+        if (!is_dir($dir)) return;
+
+        $items = @scandir($dir);
+        if ($items === false) return;
+
+        // solo '.' e '..' => vuota
+        if (count(array_diff($items, ['.', '..'])) === 0) {
+            @rmdir($dir);
+            pma_log("🧹 Rimossa cartella vuota: {$dir}", 'info');
+        }
+    }
+}
+
+/**
+ * PHP 8.0 shim per str_starts_with se serve (su alcune installazioni vecchie).
+ */
+if (!function_exists('str_starts_with')) {
+    function str_starts_with($haystack, $needle): bool {
+        return (string)$needle !== '' && strncmp($haystack, $needle, strlen($needle)) === 0;
+    }
+}
+

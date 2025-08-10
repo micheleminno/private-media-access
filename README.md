@@ -21,7 +21,8 @@
 ## 🚀 Installazione
 
 ### Da utente semplice
-Scarica il file .zip che trovi qui sopra e caricalo come plugin qui: `https://www.tua-scuola.edu.it/wp-admin/plugin-install.php`
+1. Scarica il file .zip che trovi qui sopra e caricalo come plugin da **Bacheca → Plugin → Aggiungi plugin**, cliccando sul bottone `Carica plugin` in WordPress.
+2. Attiva il plugin da **Bacheca → Plugin**.
 
 ### Da sviluppatore
 1. Scarica o clona questo repository nella cartella `wp-content/plugins/` del tuo sito.
